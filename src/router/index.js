@@ -2,8 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Hello from '@/components/Hello'
 
-import Expenses from '@/components/Expenses'
-import Bills from '@/components/Bills'
+import Expenses from '@/components/expenses'
+import Bills from '@/components/bills'
 
 import Page404 from '@/components/error_404'
 
