@@ -1,6 +1,6 @@
-# test_app
+# Personal expenses
 
-> A Vue.js project
+> This app lets you handle your expenses of the month and works offline.
 
 ## Build Setup
 
