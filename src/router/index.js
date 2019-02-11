@@ -27,6 +27,14 @@ export default new Router({
             component: Bills
         },
         {
+            path: 'index.html',
+            redirect: '/'
+        },
+        {
+            path: '/index.html',
+            redirect: '/'
+        },
+        {
             path: "*",
             name: 'PageNotMatch',
             component: Page404

@@ -425,6 +425,7 @@ export default {
 
                     if(QUEUE){
                         QUEUE = JSON.parse(QUEUE);
+                        this.locked = false;
 
                         let Index = QUEUE.indexOf(expense);
                         QUEUE.splice(Index, 1);
@@ -433,7 +434,7 @@ export default {
 
                         Index = this.expenses_queue.indexOf(expenses);
                         this.expenses_queue.splice(Index, 1);
-                        this.locked = false;
+                        
                     }
                 }
             }

@@ -68,22 +68,17 @@ export default {
       this.online = window.navigator.onLine;
 
     },1000);
+
+    this.SaveQueue();
   },
   methods:{
     Redirect(url){
       if(url) {
         this.$router.push(url);
       }
-    }
-  },
-  watch:{
-    online(newVal,oldVal){
-      if(!newVal){
-        this.disconnected_snack = true;
-      } else {
-        this.disconnected_snack = false;
-
-        let QUEUE = window.localStorage.getItem('expenses_queue');
+    },
+    SaveQueue(){
+      let QUEUE = window.localStorage.getItem('expenses_queue');
 
         if(QUEUE && !this.queue_progress){
           QUEUE = JSON.parse(QUEUE);
@@ -111,7 +106,16 @@ export default {
           })
 
         }
+    }
+  },
+  watch:{
+    online(newVal,oldVal){
+      if(!newVal){
+        this.disconnected_snack = true;
+      } else {
+        this.disconnected_snack = false;
 
+        this.SaveQueue()
       }
     }
   }
