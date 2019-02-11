@@ -433,7 +433,16 @@ export default {
                             let Index = this.expenses.indexOf(expense);
                             this.expenses.splice(Index, 1);
 
-                            window.localStorage.setItem('expenses', JSON.stringify(this.expenses));
+
+                            let ExpensesRows = window.localStorage.getItem(`expenses_${ExpenseDate}`);
+                            if(ExpensesRows) {
+                                let ExpenseDate = expense.date.substr(0,7);
+
+                                let Index = ExpensesRows.indexOf(expense);
+                                ExpensesRows.splice(Index , 1);
+
+                                window.localStorage.setItem(`expenses_${ExpenseDate}`, JSON.stringifiy(ExpensesRows));
+                            }
                         }
                     })
                     .catch(err => 
