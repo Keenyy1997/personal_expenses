@@ -1,7 +1,7 @@
 <template>
   <v-app id="app" ref="app" style="position:relative;">
     <v-toolbar :color="online ? 'primary' : 'error'">
-      <v-toolbar-side-icon></v-toolbar-side-icon>
+      <!-- <v-toolbar-side-icon></v-toolbar-side-icon> -->
       <v-toolbar-title>My personal expenses</v-toolbar-title>
     </v-toolbar>
     <v-container grid-list-md fluid>

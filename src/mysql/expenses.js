@@ -1,23 +1,55 @@
 const mysql = require('mysql');
 
 const connection = mysql.createConnection({
-    host: "INSERTYOURREALHOSTINHERE",
-    user: "INSERTYOURREALUSERINHERE",
-    password: "INSERTYOURREALPASSWORDINHERE",
-    database: "INSERTYOURREALDBINHERE"
+    host: "",
+    user: "",
+    password: "",
+    database: ""
 })
 
 let ExpenseModel = {};
 
 
-ExpenseModel.find = (callback) => {
+ExpenseModel.find = (query, callback) => {
     if (connection) {
 
-        connection.query("SELECT id, expense as name, expense_date as date, amount FROM expenses", (err, results) => {
-            if (err) callback(err)
+        let [year, month] = new Date().toISOString().substr(0, 7).split("-");
 
-            callback(null, results);
-        })
+        let Query = {
+            expense: "%%",
+            month: parseInt(month),
+            day: "%%",
+            year: parseInt(year)
+        }
+
+        if (query) {
+
+            if (query.expense)
+                Query.expense = query.expense;
+
+            if (query.month) {
+                let [year_, month_] = query.month.split("-");
+
+                Query.month = parseInt(month_);
+                Query.year = parseInt(year_);
+            }
+
+            if (query.day)
+                Query.day = parseInt(query.day);
+        }
+
+        console.log(Query);
+
+        connection.query(`
+        SELECT id, expense as name, expense_date as date, amount 
+            FROM expenses 
+                WHERE YEAR(expense_date) LIKE ? AND MONTH(expense_date) LIKE ? AND DAY(expense_date) LIKE ? AND expense LIKE ?
+                ORDER BY expense_date DESC, id DESC;`, [Query.year, Query.month, Query.day, Query.expense],
+            (err, results) => {
+                if (err) callback(err)
+
+                callback(null, results);
+            })
     }
 };
 
@@ -68,6 +100,18 @@ ExpenseModel.insertMany = (payload, callback) => {
     }
 };
 
+ExpenseModel.delete = (payload, callback) => {
+    if (connection) {
+
+        connection.query(`
+            DELETE FROM expenses WHERE id LIKE ?;
+        `, [payload.id], (err, result) => {
+            if (err) callback(err)
+
+            callback(null, result);
+        })
+    }
+};
 
 
 module.exports = ExpenseModel;
