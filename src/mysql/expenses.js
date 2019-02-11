@@ -1,10 +1,10 @@
 const mysql = require('mysql');
 
 const connection = mysql.createConnection({
-    host: "",
-    user: "",
+    host: "localhost",
+    user: "root",
     password: "",
-    database: ""
+    database: "personal_expenses"
 })
 
 let ExpenseModel = {};
@@ -58,7 +58,7 @@ ExpenseModel.insert = (payload, callback) => {
 
         connection.query(`
         INSERT INTO expenses(user_id, expense, expense_date, location, amount, create_time)
-        VALUES(?, ?, ?, ?, NOW());`, [0, payload.name, payload.date, payload.location, payload.amount], (err, result) => {
+        VALUES(?, ?, ?, ?, ?, NOW());`, [0, payload.name, payload.date, payload.location, payload.amount], (err, result) => {
             if (err) callback(err)
 
             callback(null, result);
@@ -77,7 +77,7 @@ ExpenseModel.insertMany = (payload, callback) => {
             for (let i = 0; i < payload.length; i++) {
                 connection.query(`
                     INSERT INTO expenses(user_id, expense, expense_date, location, amount, create_time)
-                    VALUES(?, ?, ?, ?, NOW());`, [0, payload[i].name, payload[i].date, payload[i].location, payload[i].amount], (err, result) => {
+                    VALUES(?, ?, ?, ?, ?, NOW());`, [0, payload[i].name, payload[i].date, payload[i].location, payload[i].amount], (err, result) => {
                     if (err) callback(err)
 
                     Counter++;

@@ -48,6 +48,11 @@
                                         delete
                                     </v-icon>
                                 </v-btn>
+                                <v-btn icon @click="showExpense(props.item)" small :disabled="props.item.location ? false : true">
+                                    <v-icon>
+                                        place
+                                    </v-icon>
+                                </v-btn>
                             </v-list-tile-action>
                         </v-list-tile>
                     </template>
@@ -162,6 +167,10 @@
                 </v-container>
             </v-card>
         </v-dialog>
+
+        <v-dialog v-model="expense_map_modal" width="600" lazy id="expense_map">
+            <iframe :src="`https://maps.google.com/maps?q=${expense_map}&hl=es;z=14&amp;output=embed`" height="600" width="600" v-if="expense_map"></iframe>
+        </v-dialog>
     </div>
 </template>
 <script>
@@ -187,7 +196,9 @@ export default {
             search_day:"",
             search_month_menu:false,
             days:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
-            locked:false
+            locked:false,
+            expense_map:"",
+            expense_map_modal:false
         };
     },
     methods:{
@@ -208,81 +219,76 @@ export default {
 
                 navigator.geolocation.getCurrentPosition((location)=>
                 {
-                    ExpenseItem.location = location.latitude + "," + location.longitude;
-                })
+                    ExpenseItem.location = location.coords.latitude + "," + location.coords.longitude;
 
-                let Online = this.$root.$children[0].online;
+                    let Online = this.$root.$children[0].online;
 
-                if(this.locked)
-                    return;
+                    if(this.locked)
+                        return;
 
-                this.locked = true;
+                    this.locked = true;
 
-                if(Online){
+                    if(Online){
 
-                    axios({
-                        url:"api/expenses",
-                        method:"post",
-                        data: {
-                            name: ExpenseItem.name,
-                            amount: ExpenseItem.amount,
-                            date: ExpenseItem.date
-                        }
-                    })
-                    .then(res => 
-                    {
-                        this.locked = false;
-                        console.log(res);
-                        if(res && res.data.message == "OK"){
+                        axios({
+                            url:"api/expenses",
+                            method:"post",
+                            data: ExpenseItem
+                        })
+                        .then(res => 
+                        {
+                            this.locked = false;
+                            console.log(res);
+                            if(res && res.data.message == "OK"){
 
-                            ExpenseItem.id = res.data.insertId;
+                                ExpenseItem.id = res.data.insertId;
 
-                            this.expenses.push(ExpenseItem);
-                            this.expense_add_modal = false;
-                            this.fetchExpenses();
-                        }
-                    })
-                    .catch(err => 
-                    {
-                        this.locked = false;
-                        console.log(err);
-                    })
+                                this.expenses.push(ExpenseItem);
+                                this.expense_add_modal = false;
+                                this.fetchExpenses();
+                            }
+                        })
+                        .catch(err => 
+                        {
+                            this.locked = false;
+                            console.log(err);
+                        })
 
-                } else {
-                    let ExpensesQUEUE = window.localStorage.getItem('expenses_queue');
-                    if(ExpensesQUEUE){
-                        ExpensesQUEUE = JSON.parse(ExpensesQUEUE);
                     } else {
-                        ExpensesQUEUE = new Array();
+                        let ExpensesQUEUE = window.localStorage.getItem('expenses_queue');
+                        if(ExpensesQUEUE){
+                            ExpensesQUEUE = JSON.parse(ExpensesQUEUE);
+                        } else {
+                            ExpensesQUEUE = new Array();
+                        }
+
+                        ExpensesQUEUE.push(ExpenseItem);
+                        window.localStorage.setItem('expenses_queue', JSON.stringify(ExpensesQUEUE));
+
+                        this.$root.$children[0].queue_snack = true;
+                        this.expenses_queue.push(ExpenseItem);
+                        this.expense_add_modal = false;
+
+                        this.locked = false;
                     }
-
-                    ExpensesQUEUE.push(ExpenseItem);
-                    window.localStorage.setItem('expenses_queue', JSON.stringify(ExpensesQUEUE));
-
-                    this.$root.$children[0].queue_snack = true;
-                    this.expenses_queue.push(ExpenseItem);
-                    this.expense_add_modal = false;
-
-                    this.locked = false;
-                }
-
+                })
             } else {
                 swal({
                     title:"You need Geolocation to add a new expense.",
                     icon:"info"
                 })
             }
-
-            
-
-            
-            
-            
         },
         clear(){
             this.expense_name = "";
             this.expense_amount = 0;
             this.expense_date = new Date().toISOString().substr(0,10)
+        },
+        showExpense(item){
+            if(item && item.location){
+                this.expense_map = item.location;
+                this.expense_map_modal = true;
+            }
         },
         fetchExpenses(){
 
@@ -493,6 +499,11 @@ export default {
                 this.expense_name = "";
                 this.expense_amount = 0;
                 this.date = new Date().toISOString().substr(0,10);
+            }
+        },
+        expense_map_modal(newVal,oldVal){
+            if(!newVal){
+                this.expense_map = "";
             }
         }
     }
