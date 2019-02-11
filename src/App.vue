@@ -1,28 +1,64 @@
 <template>
-  <div id="app">
-    <header :class="online ? '' : 'error'">
-      <span>My Finances</span
-      ><p style="text-align:right;">Saldo: $ {{ saldo }}</p>
-      <cite v-if="!online" style='color:white;'>You are not connected!</cite>
-    </header>
-    <nav>
-      <router-link to="/bills">Bills</router-link>
-      <router-link to="/expenses">Expenses</router-link>
-    </nav>
-    <main>
-      <router-view></router-view>
-    </main>
-  </div>
+  <v-app id="app" ref="app" style="position:relative;">
+    <v-toolbar :color="online ? 'primary' : 'error'">
+      <v-toolbar-side-icon></v-toolbar-side-icon>
+      <v-toolbar-title>My personal expenses</v-toolbar-title>
+    </v-toolbar>
+    <v-container grid-list-md fluid>
+      <v-layout row wrap>
+        <v-flex xs12>
+          <v-tabs v-model="tab_model" fixed-tabs color="transparent">
+            <v-tab key="bills" @click="Redirect('/bills')">
+              Bills
+            </v-tab>
+            <v-tab key="expenses" @click="Redirect('/expenses')">
+              Expenses
+            </v-tab>
+          </v-tabs>
+        </v-flex>
+        <v-flex xs12>
+          <router-view></router-view>
+        </v-flex>
+      </v-layout>
+    </v-container>
+    <v-snackbar v-model="disconnected_snack" color="red" bottom left :timeout="0">
+      You are disconnected. 
+      <v-btn flat @click="disconnected_snack = false" color="error">
+        Close
+      </v-btn>
+    </v-snackbar>
+
+    <v-snackbar v-model="queue_snack" top left color="info">
+          New Expense in Queue!
+          <v-btn @click="queue_snack = false" flat>
+              Close
+          </v-btn>
+      </v-snackbar>
+
+      <v-snackbar v-model="queue_done_snack" top left color="success">
+          All expenses in queue saved!
+          <v-btn @click="queue_done_snack = false" flat>
+              Close
+          </v-btn>
+      </v-snackbar>
+  </v-app>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'app',
   data:()=>
   {
     return {
       online:true,
-      saldo:0
+      disconnected_snack:false,
+      tab_model:"bills",
+      saldo:0,
+      queue_snack:false,
+      queue_done_snack:false,
+      queue_progress:false
     };
   },
   mounted(){
@@ -30,7 +66,54 @@ export default {
     setInterval(()=>
     {
       this.online = window.navigator.onLine;
+
     },1000);
+  },
+  methods:{
+    Redirect(url){
+      if(url) {
+        this.$router.push(url);
+      }
+    }
+  },
+  watch:{
+    online(newVal,oldVal){
+      if(!newVal){
+        this.disconnected_snack = true;
+      } else {
+        this.disconnected_snack = false;
+
+        let QUEUE = window.localStorage.getItem('expenses_queue');
+
+        if(QUEUE && !this.queue_progress){
+          QUEUE = JSON.parse(QUEUE);
+          this.queue_progress = true;
+
+          axios({
+            url:"api/expenses_multi",
+            method:"post",
+            data: QUEUE
+          })
+          .then(res => 
+          {
+            console.log(res);
+            this.queue_progress = false;
+            if(res && res.data.message == "OK"){
+              this.queue_done_snack = true;
+
+              window.localStorage.removeItem('expenses_queue');
+            }
+          })
+          .catch(err => 
+          {
+            this.queue_progress = false;
+            if(err) swal("ERROR:",err.message,"error");
+          })
+
+        }
+
+      }
+    }
   }
 }
 </script>
