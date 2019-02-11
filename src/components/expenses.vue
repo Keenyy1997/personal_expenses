@@ -196,67 +196,84 @@ export default {
                 name:"",
                 amount:0,
                 date:"",
-                id:0
+                id:0,
+                location:""
             };
 
             ExpenseItem.name = this.expense_name;
             ExpenseItem.amount = this.expense_amount || 0;
             ExpenseItem.date = this.date;
 
-            let Online = this.$root.$children[0].online;
+            if ('geolocation' in navigator) {
 
-            if(this.locked)
-                return;
-
-            this.locked = true;
-
-            if(Online){
-
-                axios({
-                    url:"api/expenses",
-                    method:"post",
-                    data: {
-                        name: ExpenseItem.name,
-                        amount: ExpenseItem.amount,
-                        date: ExpenseItem.date
-                    }
-                })
-                .then(res => 
+                navigator.geolocation.getCurrentPosition((location)=>
                 {
-                    this.locked = false;
-                    console.log(res);
-                    if(res && res.data.message == "OK"){
-
-                        ExpenseItem.id = res.data.insertId;
-
-                        this.expenses.push(ExpenseItem);
-                        this.expense_add_modal = false;
-                        this.fetchExpenses();
-                    }
-                })
-                .catch(err => 
-                {
-                    this.locked = false;
-                    console.log(err);
+                    ExpenseItem.location = location.latitude + "," + location.longitude;
                 })
 
-            } else {
-                let ExpensesQUEUE = window.localStorage.getItem('expenses_queue');
-                if(ExpensesQUEUE){
-                    ExpensesQUEUE = JSON.parse(ExpensesQUEUE);
+                let Online = this.$root.$children[0].online;
+
+                if(this.locked)
+                    return;
+
+                this.locked = true;
+
+                if(Online){
+
+                    axios({
+                        url:"api/expenses",
+                        method:"post",
+                        data: {
+                            name: ExpenseItem.name,
+                            amount: ExpenseItem.amount,
+                            date: ExpenseItem.date
+                        }
+                    })
+                    .then(res => 
+                    {
+                        this.locked = false;
+                        console.log(res);
+                        if(res && res.data.message == "OK"){
+
+                            ExpenseItem.id = res.data.insertId;
+
+                            this.expenses.push(ExpenseItem);
+                            this.expense_add_modal = false;
+                            this.fetchExpenses();
+                        }
+                    })
+                    .catch(err => 
+                    {
+                        this.locked = false;
+                        console.log(err);
+                    })
+
                 } else {
-                    ExpensesQUEUE = new Array();
+                    let ExpensesQUEUE = window.localStorage.getItem('expenses_queue');
+                    if(ExpensesQUEUE){
+                        ExpensesQUEUE = JSON.parse(ExpensesQUEUE);
+                    } else {
+                        ExpensesQUEUE = new Array();
+                    }
+
+                    ExpensesQUEUE.push(ExpenseItem);
+                    window.localStorage.setItem('expenses_queue', JSON.stringify(ExpensesQUEUE));
+
+                    this.$root.$children[0].queue_snack = true;
+                    this.expenses_queue.push(ExpenseItem);
+                    this.expense_add_modal = false;
+
+                    this.locked = false;
                 }
 
-                ExpensesQUEUE.push(ExpenseItem);
-                window.localStorage.setItem('expenses_queue', JSON.stringify(ExpensesQUEUE));
-
-                this.$root.$children[0].queue_snack = true;
-                this.expenses_queue.push(ExpenseItem);
-                this.expense_add_modal = false;
-
-                this.locked = false;
+            } else {
+                swal({
+                    title:"You need Geolocation to add a new expense.",
+                    icon:"info"
+                })
             }
+
+            
 
             
             

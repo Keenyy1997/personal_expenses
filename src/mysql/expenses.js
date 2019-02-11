@@ -41,7 +41,7 @@ ExpenseModel.find = (query, callback) => {
         console.log(Query);
 
         connection.query(`
-        SELECT id, expense as name, expense_date as date, amount 
+        SELECT id, expense as name, expense_date as date, amount , location
             FROM expenses 
                 WHERE YEAR(expense_date) LIKE ? AND MONTH(expense_date) LIKE ? AND DAY(expense_date) LIKE ? AND expense LIKE ?
                 ORDER BY expense_date DESC, id DESC;`, [Query.year, Query.month, Query.day, Query.expense],
@@ -57,8 +57,8 @@ ExpenseModel.insert = (payload, callback) => {
     if (connection) {
 
         connection.query(`
-        INSERT INTO expenses(user_id, expense, expense_date, amount, create_time)
-        VALUES(?, ?, ?, ?, NOW());`, [0, payload.name, payload.date, payload.amount], (err, result) => {
+        INSERT INTO expenses(user_id, expense, expense_date, location, amount, create_time)
+        VALUES(?, ?, ?, ?, NOW());`, [0, payload.name, payload.date, payload.location, payload.amount], (err, result) => {
             if (err) callback(err)
 
             callback(null, result);
@@ -76,8 +76,8 @@ ExpenseModel.insertMany = (payload, callback) => {
 
             for (let i = 0; i < payload.length; i++) {
                 connection.query(`
-                    INSERT INTO expenses(user_id, expense, expense_date, amount, create_time)
-                    VALUES(?, ?, ?, ?, NOW());`, [0, payload[i].name, payload[i].date, payload[i].amount], (err, result) => {
+                    INSERT INTO expenses(user_id, expense, expense_date, location, amount, create_time)
+                    VALUES(?, ?, ?, ?, NOW());`, [0, payload[i].name, payload[i].date, payload[i].location, payload[i].amount], (err, result) => {
                     if (err) callback(err)
 
                     Counter++;
