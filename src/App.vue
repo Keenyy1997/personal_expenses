@@ -58,7 +58,8 @@ export default {
       saldo:0,
       queue_snack:false,
       queue_done_snack:false,
-      queue_progress:false
+      queue_progress:false,
+      force_refresh:false
     };
   },
   mounted(){
@@ -66,10 +67,10 @@ export default {
     setInterval(()=>
     {
       this.online = window.navigator.onLine;
-
     },1000);
 
     this.SaveQueue();
+    
   },
   methods:{
     Redirect(url){
@@ -80,23 +81,40 @@ export default {
     SaveQueue(){
       let QUEUE = window.localStorage.getItem('expenses_queue');
 
-        if(QUEUE && !this.queue_progress){
-          QUEUE = JSON.parse(QUEUE);
+        if(QUEUE && QUEUE.length > 0){
+          if(this.queue_progress)
+            return;
+          
           this.queue_progress = true;
+          QUEUE = JSON.parse(QUEUE);
+
+          let RealQUEUE = new Array();
+
+          for(let i = 0;i < QUEUE.length;i++){
+            
+            let Current = QUEUE[i];
+
+            if(RealQUEUE.indexOf(Current) == -1)
+              RealQUEUE.push(Current);
+          }
 
           axios({
             url:"api/expenses_multi",
             method:"post",
-            data: QUEUE
+            data: RealQUEUE
           })
           .then(res => 
           {
             console.log(res);
             this.queue_progress = false;
             if(res && res.data.message == "OK"){
+              window.localStorage.removeItem('expenses_queue');
               this.queue_done_snack = true;
 
-              window.localStorage.removeItem('expenses_queue');
+              if(this.$router.history.current && this.$router.history.current.name == "Expenses"){
+                this.force_refresh = true;
+              }
+
             }
           })
           .catch(err => 

@@ -168,8 +168,8 @@
             </v-card>
         </v-dialog>
 
-        <v-dialog v-model="expense_map_modal" width="600" lazy id="expense_map">
-            <iframe :src="`https://maps.google.com/maps?q=${expense_map}&hl=es;z=14&amp;output=embed`" height="600" width="600" v-if="expense_map"></iframe>
+        <v-dialog v-model="expense_map_modal" lazy id="expense_map">
+            <iframe :src="`https://maps.google.com/maps?q=${expense_map}&hl=es;z=14&amp;output=embed`" height="600" style="width:100%;" v-if="expense_map"></iframe>
         </v-dialog>
     </div>
 </template>
@@ -329,8 +329,8 @@ export default {
                     this.locked = false;
                     if(res && res.data.message == "OK"){
                         this.expenses = res.data.data;
-
-                        window.localStorage.setItem(`expenses_${SearchItem.month}`, JSON.stringify(res.data.data));
+                        if(!SearchItem.expense)
+                            window.localStorage.setItem(`expenses_${SearchItem.month}`, JSON.stringify(res.data.data));
                     }
                 })
                 .catch(err => 
@@ -478,6 +478,11 @@ export default {
                 this.expenses_queue = ExpensesQUEUE;
             } else {
                 this.expenses_queue = [];
+            }
+
+            if(this.$root.$children[0].force_refresh == true){
+                this.fetchExpenses();
+                this.$root.$children[0].force_refresh = false;
             }
         },1000);
     },
