@@ -440,7 +440,6 @@ export default {
                                 ExpensesRows = JSON.parse(ExpensesRows);
                                 let Index = ExpensesRows.indexOf(expense);
                                 ExpensesRows.splice(Index , 1);
-
                                 window.localStorage.setItem(`expenses_${ExpenseDate}`, JSON.stringify(ExpensesRows));
                             }
                         }
