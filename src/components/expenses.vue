@@ -437,11 +437,11 @@ export default {
                             let ExpenseDate = expense.date.substr(0,7);
                             let ExpensesRows = window.localStorage.getItem(`expenses_${ExpenseDate}`);
                             if(ExpensesRows) {
-
+                                ExpensesRows = JSON.parse(ExpensesRows);
                                 let Index = ExpensesRows.indexOf(expense);
                                 ExpensesRows.splice(Index , 1);
 
-                                window.localStorage.setItem(`expenses_${ExpenseDate}`, JSON.stringifiy(ExpensesRows));
+                                window.localStorage.setItem(`expenses_${ExpenseDate}`, JSON.stringify(ExpensesRows));
                             }
                         }
                     })

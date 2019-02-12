@@ -8,10 +8,10 @@
       <v-layout row wrap>
         <v-flex xs12>
           <v-tabs v-model="tab_model" fixed-tabs color="transparent">
-            <v-tab key="bills" @click="Redirect('/bills')">
-              Bills
+            <v-tab key="home" @click="Redirect('/')" ripple>
+              Home
             </v-tab>
-            <v-tab key="expenses" @click="Redirect('/expenses')">
+            <v-tab key="expenses" @click="Redirect('/expenses')" ripple>
               Expenses
             </v-tab>
           </v-tabs>
@@ -54,7 +54,7 @@ export default {
     return {
       online:true,
       disconnected_snack:false,
-      tab_model:"bills",
+      tab_model:"home",
       saldo:0,
       queue_snack:false,
       queue_done_snack:false,
