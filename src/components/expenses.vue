@@ -58,6 +58,12 @@
                     </template>
                 </v-data-iterator>
             </v-flex>
+            <v-flex xs12>
+                <v-divider style="margin-top:1em;"></v-divider>
+                <h2 class="title font-weight-light">
+                    $ {{ ParseNumber(TotalExpenses) }}
+                </h2>
+            </v-flex>
         </v-layout>
 
         <v-btn
@@ -81,7 +87,8 @@
                             <v-text-field label="Expense" v-model="expense_name"></v-text-field>
                         </v-flex>
                         <v-flex xs6>
-                            <v-text-field label="Amount" :prefix="expense_amount ? '$' : ''" v-model="expense_amount" type="number"></v-text-field>
+                            <v-text-field label="Amount" :prefix="expense_amount ? '$' : ''" v-model="expense_amount" 
+                            @blur="expense_focus = false;" @focus="expense_focus = true;"></v-text-field>
                         </v-flex>
                         <v-flex xs6>
                             <v-dialog
@@ -169,7 +176,14 @@
         </v-dialog>
 
         <v-dialog v-model="expense_map_modal" lazy id="expense_map">
-            <iframe :src="`https://maps.google.com/maps?q=${expense_map}&hl=es;z=14&amp;output=embed`" height="600" style="width:100%;" v-if="expense_map"></iframe>
+            <v-container fluid style='position:relative;'>
+                    <v-btn icon @click="expense_map_modal = false;" color="error" absolute top right style="z-index:1000;top:15px;">
+                    <v-icon>
+                        clear
+                    </v-icon>
+                </v-btn>
+                <iframe :src="`https://maps.google.com/maps?q=${expense_map}&hl=es;z=14&amp;output=embed`" height="600" style="width:100%;" v-if="expense_map"></iframe>
+            </v-container>
         </v-dialog>
     </div>
 </template>
@@ -184,7 +198,8 @@ export default {
         return {
             expense_add_modal:false,
             expense_name:"",
-            expense_amount:0,
+            expense_amount:"",
+            expense_focus:false,
             modal:false,
             date:new Date().toISOString().substr(0,10),
             expense_today:false,
@@ -212,8 +227,18 @@ export default {
             };
 
             ExpenseItem.name = this.expense_name;
-            ExpenseItem.amount = this.expense_amount || 0;
+            ExpenseItem.amount = this.GetNumber(this.expense_amount) || 0;
             ExpenseItem.date = this.date;
+
+            if(ExpenseItem.name == ""){
+                swal("ERROR:","Expense name is required.","error")
+                return;
+            }
+
+            if(!ExpenseItem.amount) {
+                swal("ERROR:","Amount is required.", "error")
+                return;
+            }
 
             if ('geolocation' in navigator) {
 
@@ -471,8 +496,13 @@ export default {
             }
         },
         ParseNumber(number){
-            return parseFloat(number).toFixed(2);
+            return number.toLocaleString('en-US', {minimumFractionDigits: 2}) || "";
         },
+        GetNumber(number){
+            if(number)
+                return parseFloat(number.replace(/,/gi,""));
+            return "";
+        }
     },
     mounted(){
         this.fetchExpenses();
@@ -504,19 +534,32 @@ export default {
                 }
             }
             return Sum;
-        }
+        },
     },
     watch:{
         expense_add_modal(newVal,oldVal){
             if(!newVal){
                 this.expense_name = "";
-                this.expense_amount = 0;
+                this.expense_amount = "";
                 this.date = new Date().toISOString().substr(0,10);
             }
         },
         expense_map_modal(newVal,oldVal){
             if(!newVal){
                 this.expense_map = "";
+            }
+        },
+        expense_focus(newVal,oldVal){
+            console.log(`Focus: ${newVal} - Value: ${this.expense_amount}`);
+
+            if(newVal){
+                this.expense_amount = this.GetNumber(this.expense_amount);
+            } else if(newVal == false){
+                if(this.expense_amount != "")
+                {
+                    this.expense_amount = parseFloat(this.expense_amount).toLocaleString('en-US', {minimumFractionDigits: 2});
+                    console.log(this.expense_amount);
+                }
             }
         }
     }
