@@ -7,6 +7,11 @@
     <v-container grid-list-md fluid>
       <v-layout row wrap>
         <v-flex xs12>
+          <v-btn center round outline @click="AllowNotifications()" color='error'>
+            Allow Notifications
+          </v-btn>
+        </v-flex>
+        <v-flex xs12>
           <v-tabs v-model="tab_model" fixed-tabs color="transparent">
             <v-tab key="home" @click="Redirect('/')" ripple>
               Home
@@ -124,6 +129,17 @@ export default {
           })
 
         }
+    },
+    AllowNotifications(){
+      if(!'Notification' in window){
+        swal("ERROR", "Api not supported.",'error')
+        return;
+      }
+
+      Notification.requestPermission((result)=>{
+        console.log(result);
+      })
+
     }
   },
   watch:{
